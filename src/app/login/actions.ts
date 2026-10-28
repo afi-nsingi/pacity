@@ -13,6 +13,7 @@ export async function signIn(_prev: LoginState, formData: FormData): Promise<Log
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error?.code === "user_banned") return { error: "Votre abonnement est résilié : rapprochez-vous de l’équipe Pacity pour le réactiver." };
   if (error) return { error: "Adresse e-mail ou mot de passe incorrect." };
 
   // On n'accepte que les redirections internes à l'application.

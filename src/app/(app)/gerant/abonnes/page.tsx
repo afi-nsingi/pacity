@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/session";
 import { formatDate, ledgerPeriod } from "@/lib/dates";
@@ -9,14 +10,14 @@ import { AddMemberPanel, PlanEditor } from "./member-forms";
 export const metadata = { title: "Membres et crédits" };
 
 const PERIODS = ["Aujourd’hui", "7 derniers jours", "Ce mois-ci", "Plus ancien"];
-type Search = { q?: string; abonnement?: string; periode?: string; membre?: string; type?: string };
+type Search = { q?: string; abonnement?: string; statut?: string; periode?: string; membre?: string; type?: string };
 
 export default async function SubscribersPage({ searchParams }: { searchParams: Promise<Search> }) {
   await requireSession("manager");
   const f = await searchParams;
   const supabase = await createClient();
   const [{ data: profiles }, { data: balances }, { data: ledger }, { data: bookings }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name, role, plan").eq("role", "member").order("full_name").returns<Profile[]>(),
+    supabase.from("profiles").select("id, full_name, role, plan, status").eq("role", "member").order("full_name").returns<Profile[]>(),
     supabase.from("member_balances").select("member_id, balance"),
     supabase.from("credit_ledger").select("id, member_id, amount, kind, label, created_at, profiles(full_name)")
       .order("created_at", { ascending: false }).returns<LedgerEntry[]>(),
@@ -35,7 +36,8 @@ export default async function SubscribersPage({ searchParams }: { searchParams: 
   });
   const q = f.q?.toLowerCase().trim();
   const shown = subscribers.filter((s) =>
-    (!f.abonnement || (s.plan && PLAN_LABEL[s.plan] === f.abonnement)) && (!q || s.full_name.toLowerCase().includes(q)));
+    (!f.abonnement || (s.plan && PLAN_LABEL[s.plan] === f.abonnement)) &&
+    (!f.statut || (f.statut === "Résilié") === (s.status === "cancelled")) && (!q || s.full_name.toLowerCase().includes(q)));
 
   const names = subscribers.map((s) => s.full_name);
   const history = (ledger ?? []).filter((e) =>
@@ -46,22 +48,28 @@ export default async function SubscribersPage({ searchParams }: { searchParams: 
   return (
     <>
       <PageHeader title="Membres et crédits"
-        lead="Ajoutez un membre, changez son abonnement et suivez ses crédits. Les Full Time reçoivent automatiquement 20 crédits le 1er de chaque mois, cumulables." />
+        lead="Ajoutez un membre, changez ou résiliez son abonnement et suivez ses crédits. Cliquez sur un nom pour voir sa fiche et son historique. Les Full Time reçoivent automatiquement 20 crédits le 1er de chaque mois, cumulables." />
 
       <AddMemberPanel />
 
       <FilterBar searchPlaceholder="Rechercher un membre" filters={[
         { name: "abonnement", label: "Abonnement", options: Object.values(PLAN_LABEL) },
+        { name: "statut", label: "Statut", options: ["Actif", "Résilié"] },
       ]} />
       {shown.length === 0 ? <EmptyState>Aucun membre ne correspond à ces filtres.</EmptyState> : (
         <div className="table-wrap">
           <table className="data-table">
-            <thead><tr><th>Membre</th><th>Abonnement</th><th>Crédits par mois</th><th className="text-right">Solde</th><th>Dernier renouvellement</th><th className="text-right">Réservations confirmées</th></tr></thead>
+            <thead><tr><th>Membre</th><th>Statut</th><th>Abonnement</th><th>Crédits par mois</th><th className="text-right">Solde</th><th>Dernier renouvellement</th><th className="text-right">Réservations confirmées</th></tr></thead>
             <tbody>
               {shown.map((s) => (
                 <tr key={s.id}>
-                  <td className="font-medium">{s.full_name}</td>
-                  <td>{s.plan && <PlanEditor key={s.plan} memberId={s.id} plan={s.plan} upcoming={s.confirmed} />}</td>
+                  <td className="font-medium"><Link href={`/gerant/abonnes/${s.id}`} className="hover:text-accent hover:underline">{s.full_name}</Link></td>
+                  <td>{s.status === "cancelled"
+                    ? <span className="rounded-full bg-danger-soft px-2.5 py-1 text-xs font-semibold text-danger">Résilié</span>
+                    : <span className="rounded-full bg-sage-soft px-2.5 py-1 text-xs font-semibold text-sage">Actif</span>}</td>
+                  <td>{s.plan && (s.status === "cancelled"
+                    ? <span className="text-sm text-muted">{PLAN_LABEL[s.plan]} (gelé)</span>
+                    : <PlanEditor key={s.plan} memberId={s.id} plan={s.plan} upcoming={s.confirmed} />)}</td>
                   <td>{s.plan === "full_time" ? "20 crédits" : "Aucun (Nomad)"}</td>
                   <td className="text-right font-semibold tabular-nums">{s.balance}</td>
                   <td>{s.lastGrant ? formatDate(s.lastGrant) : "—"}</td>

@@ -21,7 +21,8 @@ Cas pratique NoCode Factory, réalisé avec **Claude Code** par Afi NSINGI NDOMB
 **Gérant**
 - voir toutes les réservations (recherche, filtres membre, salle, période, statut) ;
 - annuler n'importe quelle réservation avec un motif : le membre est remboursé ;
-- ajouter un membre (e-mail de bienvenue : il choisit lui-même son mot de passe) et changer son abonnement ;
+- ajouter un membre (e-mail de bienvenue : il choisit lui-même son mot de passe), changer, résilier ou réactiver son abonnement ;
+- consulter la fiche de chaque membre : historique daté de l'abonnement (inscription, changements, résiliation, réactivation), réservations et crédits ;
 - suivre les abonnements, les soldes et chaque mouvement de crédits.
 - rendre une salle indisponible (travaux, fuite, privatisation…) avec un motif affiché aux membres, puis la rouvrir.
 
@@ -36,6 +37,8 @@ Cas pratique NoCode Factory, réalisé avec **Claude Code** par Afi NSINGI NDOMB
 | Créneaux à l'heure pile, 08:00 → 20:00, du lundi au vendredi, pas dans le passé, jusqu'à 30 jours | fonction `book_room` (et le formulaire) |
 | Annulation par le gérant seulement, motif obligatoire, un seul remboursement | fonction `cancel_booking` + index unique |
 | Changement d'abonnement par le gérant seulement ; passage Full Time = 20 crédits du mois tout de suite, jamais en double | fonction `set_member_plan` (migration 0003) |
+| Résiliation : plus de connexion, réservations à venir annulées et remboursées, crédits conservés et gelés, plus de renouvellement | `cancel_membership` + déclencheur sur les réservations (migration 0004) |
+| Historique d'abonnement complet, impossible à contourner | déclencheur sur `profiles` → table `subscription_events` |
 | Full Time : +20 crédits le 1er de chaque mois, cumulables, jamais en double | `grant_monthly_credits` planifiée par `pg_cron` + index unique |
 | Un membre ne voit que ses données ; personne n'écrit directement dans les crédits | Row Level Security |
 
@@ -63,7 +66,7 @@ src/lib/               dates (heure de Paris), session, e-mails
 ## Lancer le projet en local
 
 1. Créer un projet Supabase et exécuter, dans l'ordre, `supabase/migrations/0001_schema.sql`,
-   `0002_rules.sql`, `0003_members.sql` puis `supabase/seed.sql`.
+   `0002_rules.sql`, `0003_members.sql`, `0004_subscription_history.sql` puis `supabase/seed.sql`.
 2. Copier `.env.example` en `.env.local` et le compléter (aucune clé n'est dans le dépôt).
 3. Installer et lancer :
    ```bash

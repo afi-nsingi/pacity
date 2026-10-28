@@ -8,6 +8,7 @@ export type Profile = {
   full_name: string;
   role: Role;
   plan: Plan | null;
+  status?: "active" | "cancelled";
 };
 
 export type Room = {

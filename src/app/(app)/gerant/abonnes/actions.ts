@@ -74,3 +74,31 @@ export async function changePlan(_prev: MemberState, formData: FormData): Promis
     ? "Abonnement Full Time enregistré : les 20 crédits du mois sont sur son compte (s’il ne les avait pas déjà)."
     : "Abonnement Nomad enregistré : ses crédits restent sur son compte mais il ne peut plus réserver." };
 }
+
+/** Résilier : statut, annulation et remboursement des réservations à venir, puis compte bloqué. */
+export async function cancelMember(_prev: MemberState, formData: FormData): Promise<MemberState> {
+  const memberId = String(formData.get("member") ?? "");
+  const reason = String(formData.get("reason") ?? "").trim();
+  const supabase = await createClient();
+  // Droits, motif obligatoire, annulations et remboursements : vérifiés par la base (cancel_membership).
+  const { data: cancelled, error } = await supabase.rpc("cancel_membership", { p_member_id: memberId, p_reason: reason });
+  if (error) return { status: "error", message: error.message };
+  // Plus de connexion : le compte est bloqué (réversible à la réactivation).
+  await createAdminClient()?.auth.admin.updateUserById(memberId, { ban_duration: "876000h" });
+  revalidatePath("/", "layout");
+  const n = Number(cancelled ?? 0);
+  return { status: "done", at: Date.now(), message: `Abonnement résilié.${n ? ` ${n} réservation${n > 1 ? "s" : ""} à venir annulée${n > 1 ? "s" : ""} et remboursée${n > 1 ? "s" : ""}.` : ""} Le membre ne peut plus se connecter ; ses crédits sont conservés.` };
+}
+
+/** Réactiver avec un abonnement : connexion rétablie, crédits du mois si Full Time. */
+export async function reactivateMember(_prev: MemberState, formData: FormData): Promise<MemberState> {
+  const memberId = String(formData.get("member") ?? "");
+  const plan = String(formData.get("plan") ?? "");
+  if (!isPlan(plan)) return { status: "error", message: "Choisissez un abonnement." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("reactivate_membership", { p_member_id: memberId, p_plan: plan });
+  if (error) return { status: "error", message: error.message };
+  await createAdminClient()?.auth.admin.updateUserById(memberId, { ban_duration: "none" });
+  revalidatePath("/", "layout");
+  return { status: "done", at: Date.now(), message: "Abonnement réactivé : le membre peut de nouveau se connecter." };
+}

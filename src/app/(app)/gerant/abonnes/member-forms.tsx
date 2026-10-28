@@ -1,9 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { CheckCircle2, UserPlus } from "lucide-react";
+import { CheckCircle2, RotateCcw, UserMinus, UserPlus } from "lucide-react";
 import { submitWithoutReset } from "@/lib/forms";
-import { changePlan, createMember, type MemberState } from "./actions";
+import { cancelMember, changePlan, createMember, reactivateMember, type MemberState } from "./actions";
 
 const PLAN_OPTIONS = [
   { value: "full_time", label: "Full Time · 20 crédits par mois" },
@@ -103,6 +103,73 @@ export function PlanEditor({ memberId, plan, upcoming }: { memberId: string; pla
         <button type="submit" disabled={pending || choice === plan} className="btn-primary !px-3 !py-1.5 text-sm">{pending ? "…" : "Enregistrer"}</button>
         <button type="button" onClick={() => setEditing(false)} className="btn-ghost !px-3 !py-1.5 text-sm">Annuler</button>
       </div>
+    </form>
+  );
+}
+
+const CANCEL_REASONS = ["Départ du coworking", "Impayé", "Demande du membre", "Autre"];
+
+/** Résilier : motif obligatoire ; annule et rembourse les réservations à venir, bloque la connexion. */
+export function CancelMembershipPanel({ memberId, upcoming }: { memberId: string; upcoming: number }) {
+  const [state, action, pending] = useActionState<MemberState, FormData>(cancelMember, { status: "idle" });
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState(CANCEL_REASONS[0]);
+  const [detail, setDetail] = useState("");
+
+  if (!open) {
+    return (
+      <div className="space-y-3">
+        <Feedback state={state} />
+        <button type="button" onClick={() => setOpen(true)} className="btn-ghost"><UserMinus className="h-4 w-4" /> Résilier l’abonnement</button>
+      </div>
+    );
+  }
+  return (
+    <form onSubmit={submitWithoutReset(action)} className="card space-y-4 border-danger/30 p-5">
+      <input type="hidden" name="member" value={memberId} />
+      <input type="hidden" name="reason" value={detail.trim() ? `${reason} – ${detail.trim()}` : reason} />
+      <div>
+        <p className="font-semibold">Résilier l’abonnement</p>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted">
+          <li>Le membre ne pourra plus se connecter (réversible : « Réactiver »).</li>
+          <li>{upcoming > 0 ? `${upcoming} réservation${upcoming > 1 ? "s" : ""} à venir ${upcoming > 1 ? "seront annulées" : "sera annulée"} et remboursée${upcoming > 1 ? "s" : ""}.` : "Aucune réservation à venir à annuler."}</li>
+          <li>Ses crédits restent sur son compte, gelés ; plus aucun renouvellement.</li>
+        </ul>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label htmlFor="cancel-reason" className="label">Motif</label>
+          <select id="cancel-reason" className="field" value={reason} onChange={(e) => setReason(e.target.value)}>
+            {CANCEL_REASONS.map((r) => <option key={r}>{r}</option>)}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="cancel-detail" className="label">Précision {reason === "Autre" ? "(obligatoire)" : "(facultative)"}</label>
+          <input id="cancel-detail" className="field" value={detail} onChange={(e) => setDetail(e.target.value)} required={reason === "Autre"} />
+        </div>
+      </div>
+      <Feedback state={state} />
+      <div className="flex flex-wrap gap-3">
+        <button type="submit" disabled={pending} className="btn-primary !bg-danger">{pending ? "Résiliation…" : "Confirmer la résiliation"}</button>
+        <button type="button" onClick={() => setOpen(false)} className="btn-ghost">Annuler</button>
+      </div>
+    </form>
+  );
+}
+
+/** Réactiver un membre résilié, avec l'abonnement choisi. */
+export function ReactivatePanel({ memberId, lastPlan }: { memberId: string; lastPlan: "full_time" | "nomad" | null }) {
+  const [state, action, pending] = useActionState<MemberState, FormData>(reactivateMember, { status: "idle" });
+  return (
+    <form onSubmit={submitWithoutReset(action)} className="card space-y-3 p-5">
+      <input type="hidden" name="member" value={memberId} />
+      <p className="font-semibold">Réactiver l’abonnement</p>
+      <select name="plan" defaultValue={lastPlan ?? "full_time"} className="field">
+        {PLAN_OPTIONS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+      </select>
+      <p className="text-xs text-muted">Connexion rétablie ; en Full Time, les 20 crédits du mois s’ajoutent s’il ne les a pas déjà eus.</p>
+      <Feedback state={state} />
+      <button type="submit" disabled={pending} className="btn-primary"><RotateCcw className="h-4 w-4" /> {pending ? "Réactivation…" : "Réactiver"}</button>
     </form>
   );
 }
