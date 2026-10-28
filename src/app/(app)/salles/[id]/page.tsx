@@ -7,6 +7,7 @@ import { BOOKING_HORIZON_DAYS, formatDate, formatSlot } from "@/lib/dates";
 import type { Booking, Room } from "@/lib/types";
 import { EmptyState, SectionTitle, StatusBadge } from "@/components/ui";
 import { RoomPhoto } from "@/components/room-photo";
+import { AvailabilityPanel } from "./availability-panel";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -25,6 +26,11 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
   const isManager = profile.role === "manager";
   const now = new Date();
   const horizon = new Date(now.getTime() + BOOKING_HORIZON_DAYS * 86400000);
+  // Gérant : réservations confirmées à venir, signalées avant de bloquer la salle.
+  const upcoming = isManager
+    ? (await supabase.from("bookings").select("id", { count: "exact", head: true })
+        .eq("room_id", room.id).eq("status", "confirmed").gt("ends_at", now.toISOString())).count ?? 0
+    : 0;
 
   return (
     <>
@@ -49,6 +55,7 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
               Salle momentanément indisponible : {room.unavailable_reason}
             </p>
           )}
+          {isManager && <AvailabilityPanel roomId={room.id} reason={room.unavailable_reason} upcoming={upcoming} />}
           {!isManager && !room.unavailable_reason && (
             <Link href={`/reserver?salle=${room.id}`} className="btn-primary mt-6">
               <CalendarPlus className="h-4 w-4" /> Réserver cette salle

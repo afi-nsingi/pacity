@@ -22,6 +22,7 @@ export function BookingForm({ rooms, busy, today, balance, initialRoom, lockRoom
 
   const room = rooms.find((r) => r.id === roomId);
   const cost = (room?.credits_per_hour ?? 0) * hours;
+  const blocked = room?.unavailable_reason ?? null;
 
   // Disponibilités en direct : un créneau est grisé s'il chevauche une réservation confirmée.
   const taken = useMemo(() => {
@@ -74,6 +75,12 @@ export function BookingForm({ rooms, busy, today, balance, initialRoom, lockRoom
         </div>
       )}
 
+      {blocked && (
+        <p role="status" className="rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">
+          {room?.name} est momentanément indisponible : {blocked}. Choisissez une autre salle.
+        </p>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="label" htmlFor="date">Date</label>
@@ -119,7 +126,7 @@ export function BookingForm({ rooms, busy, today, balance, initialRoom, lockRoom
           Coût : <strong className="text-accent-dark">{cost} crédit{cost > 1 ? "s" : ""}</strong>
           <span className="text-muted"> · votre solde : {balance} crédit{balance > 1 ? "s" : ""}</span>
         </p>
-        <button type="submit" className="btn-primary" disabled={pending || hour === null || !roomId}>
+        <button type="submit" className="btn-primary" disabled={pending || hour === null || !roomId || !!blocked}>
           {pending ? "Réservation…" : "Réserver ce créneau"}
         </button>
       </div>

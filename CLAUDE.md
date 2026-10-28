@@ -78,3 +78,4 @@
   - Gérant (Mathieu, en ligne) : accueil, liste, filtre Hugo, Abonnés (Hugo 0), fiche salle avec noms sans bouton, pages membre refusées, Mon compte ; annulation « Autre – Test final de la recette… ».
   - Base finale : 4 réservations, 0 confirmée, 11 mouvements, 0 chevauchement, 0 confirmée sans débit, 0 annulée sans remboursement ni sans motif, 0 Nomad confirmé, 0 solde négatif, 0 orphelin ; Léa 40 / Hugo 2 / Sami 0 / Mathieu 0.
   - Réception des 2 e-mails (confirmation local, annulation en ligne) à confirmer par l'utilisatrice.
+- Décision (28/10, utilisatrice) — options V1 du brief : **plus d'1 h** = déjà fait (1 à 4 h, testé) ; **options (vidéoprojecteur, panier de fruits) = non faites** (aucun tarif dans le brief, à chiffrer avec Pacity → roadmap) ; **achat de crédits** = roadmap (paiement en ligne) ; **salle non réservable** = écran gérant proposé (la base le gère déjà via `rooms.unavailable_reason`).
