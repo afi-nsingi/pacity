@@ -48,6 +48,14 @@ export default async function AllBookingsPage({ searchParams }: { searchParams: 
         { name: "statut", label: "Statut", options: ["Confirmée", "Annulée"] },
       ]} />
 
+      {/* Nombre de résultats : « sur N » seulement quand un filtre ou une recherche réduit la liste. */}
+      {rows.length > 0 && (
+        <p className="mb-3 text-sm text-muted">
+          <span className="font-semibold text-ink">{rows.length} réservation{rows.length > 1 ? "s" : ""} trouvée{rows.length > 1 ? "s" : ""}</span>
+          {rows.length < all.length && ` sur ${all.length}`}
+        </p>
+      )}
+
       {rows.length === 0 ? (
         <EmptyState>{all.length === 0
           ? "Aucune réservation pour l’instant : elles apparaîtront ici dès qu’un membre réservera une salle."
