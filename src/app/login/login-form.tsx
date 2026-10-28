@@ -1,12 +1,13 @@
 "use client";
 
 import { useActionState } from "react";
+import { submitWithoutReset } from "@/lib/forms";
 import { signIn, type LoginState } from "./actions";
 
 export function LoginForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState<LoginState, FormData>(signIn, {});
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={submitWithoutReset(action)} className="space-y-4">
       <input type="hidden" name="suite" value={next} />
       <div>
         <label htmlFor="email" className="label">Adresse e-mail</label>

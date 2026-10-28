@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useMemo, useState } from "react";
+import { submitWithoutReset } from "@/lib/forms";
 import { CheckCircle2 } from "lucide-react";
 import { bookRoom, type BookState } from "./actions";
 import { DatePicker } from "@/components/date-picker";
@@ -56,7 +57,7 @@ export function BookingForm({ rooms, busy, today, balance, initialRoom, lockRoom
   }
 
   return (
-    <form action={action} className="card space-y-6 p-6">
+    <form onSubmit={submitWithoutReset(action)} className="card space-y-6 p-6">
       <input type="hidden" name="room" value={roomId} />
       <input type="hidden" name="hour" value={hour ?? ""} />
 

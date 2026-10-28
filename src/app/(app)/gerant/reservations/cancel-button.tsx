@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { submitWithoutReset } from "@/lib/forms";
 import { X } from "lucide-react";
 import { cancelBooking, type CancelState } from "./actions";
 
@@ -28,7 +29,7 @@ export function CancelButton({ bookingId, summary }: { bookingId: string; summar
       </button>
       {open && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-4" onClick={() => setOpen(false)}>
-          <form action={action} onClick={(e) => e.stopPropagation()} className="card w-full max-w-md space-y-4 p-6 shadow-2xl">
+          <form onSubmit={submitWithoutReset(action)} onClick={(e) => e.stopPropagation()} className="card w-full max-w-md space-y-4 p-6 shadow-2xl">
             <input type="hidden" name="booking" value={bookingId} />
             <div>
               <h2 className="text-lg font-bold">Pourquoi annuler ?</h2>
