@@ -77,7 +77,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <StatCard label="Solde" value={bal?.balance ?? 0} hint={active ? "crédits disponibles" : "crédits gelés"} tone="accent" />
         <StatCard label="Abonnement" value={plan(member.plan)} hint={member.plan === "full_time" ? "20 crédits par mois" : "sans réservation"} />
         <StatCard label="Membre depuis" value={signup ? formatDate(signup.created_at) : "—"} />
