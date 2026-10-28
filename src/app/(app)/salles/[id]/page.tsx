@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarPlus, Coins, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/session";
-import { BOOKING_HORIZON_DAYS, formatDate, formatSlot } from "@/lib/dates";
+import { formatDate, formatSlot } from "@/lib/dates";
 import type { Booking, Room } from "@/lib/types";
 import { EmptyState, SectionTitle, StatusBadge } from "@/components/ui";
 import { RoomPhoto } from "@/components/room-photo";
@@ -25,7 +25,6 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
 
   const isManager = profile.role === "manager";
   const now = new Date();
-  const horizon = new Date(now.getTime() + BOOKING_HORIZON_DAYS * 86400000);
   // Gérant : réservations confirmées à venir, signalées avant de bloquer la salle.
   const upcoming = isManager
     ? (await supabase.from("bookings").select("id", { count: "exact", head: true })
@@ -65,35 +64,8 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      {isManager ? <ManagerHistory roomId={room.id} /> : <BusySlots roomId={room.id} from={now} to={horizon} />}
-    </>
-  );
-}
-
-/** Membres : créneaux déjà réservés, sans le nom des autres membres. */
-async function BusySlots({ roomId, from, to }: { roomId: string; from: Date; to: Date }) {
-  const supabase = await createClient();
-  const { data } = await supabase.rpc("room_busy_slots", {
-    p_room_id: roomId, p_from: from.toISOString(), p_to: to.toISOString(),
-  });
-  const slots = (data ?? []) as { starts_at: string; ends_at: string }[];
-  return (
-    <>
-      <SectionTitle title="Créneaux déjà réservés" lead="Tous les autres créneaux (08:00–20:00, du lundi au vendredi) sont à vous." />
-      {slots.length === 0 ? (
-        <EmptyState>Bonne nouvelle : aucun créneau n’est pris, cette salle est libre sur toutes les heures d’ouverture.</EmptyState>
-      ) : (
-        <div className="table-wrap">
-          <table className="data-table !min-w-0">
-            <thead><tr><th>Date</th><th>Créneau</th></tr></thead>
-            <tbody>
-              {slots.map((s) => (
-                <tr key={s.starts_at}><td>{formatDate(s.starts_at)}</td><td className="tabular-nums">{formatSlot(s.starts_at, s.ends_at)}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {/* Gérant : historique de la salle. Membre : les créneaux pris sont barrés dans le formulaire de réservation. */}
+      {isManager && <ManagerHistory roomId={room.id} />}
     </>
   );
 }
