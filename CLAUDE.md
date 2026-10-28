@@ -3,7 +3,6 @@
 > Mémoire du projet de code. Langue : français. Contexte complet du cas : `../CLAUDE.md`.
 
 ## Pourquoi cette version
-- Retour de NoCode Factory (28/10) : le cas devait être fait **en Claude Code** (Softr n'était qu'une option du brief). À refaire sur le **même sujet**, à livrer **d'ici la fin de semaine (viser vendredi 30/10)** : application **testable** en ligne + **lien vers le code** (GitHub) + **vidéo de démo** (avec 30 à 60 s de Claude Code au travail).
 - Décision de l'utilisatrice (28/10) : **reprendre l'intégralité de l'application Softr** (design, présentation, structure, pages, textes), reconstruite en code.
 
 ## Stack (décision du 28/10)
