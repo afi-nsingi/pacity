@@ -49,6 +49,7 @@ export function BookingForm({ rooms, busy, today, balance, initialRoom, lockRoom
           {state.roomName} · {formatLongDate(state.startsAt)} · {formatSlot(state.startsAt, state.endsAt)}
         </p>
         <p className="mt-1 text-sm text-muted">{state.cost} crédit{state.cost > 1 ? "s" : ""} débité{state.cost > 1 ? "s" : ""} de votre solde.</p>
+        <p className="mt-1 text-sm text-muted">Un empêchement ? Prévenez l’équipe Pacity : elle annulera la réservation et vos crédits vous seront rendus.</p>
         <div className="mt-6 flex justify-center gap-3">
           <Link href="/mes-reservations" className="btn-primary">Voir mes réservations</Link>
           <a href="/reserver" className="btn-ghost">Réserver un autre créneau</a>

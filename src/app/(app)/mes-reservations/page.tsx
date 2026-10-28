@@ -34,7 +34,7 @@ export default async function MyBookingsPage({ searchParams }: { searchParams: P
   return (
     <>
       <PageHeader title="Mes réservations"
-        lead="Retrouvez toutes vos réservations. Une annulation par l’équipe Pacity ? Le motif s’affiche ici et vos crédits vous sont rendus.">
+        lead="Retrouvez toutes vos réservations. Besoin d’annuler ? Prévenez l’équipe Pacity : elle annule pour vous et vos crédits vous sont rendus. Le motif s’affiche ici.">
         <Link href="/reserver" className="btn-primary">Réserver une salle</Link>
       </PageHeader>
 
