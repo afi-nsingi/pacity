@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="160" viewBox="0 0 600 160">
+  <!-- Pictogramme : table de réunion vue de dessus, 4 places, sur pastille terracotta -->
+  <rect x="8" y="8" width="144" height="144" rx="40" fill="#E2583E"/>
+  <circle cx="80" cy="80" r="30" fill="#FFF8F0"/>
+  <rect x="68" y="22" width="24" height="16" rx="8" fill="#FFF8F0"/>
+  <rect x="68" y="122" width="24" height="16" rx="8" fill="#FFF8F0"/>
+  <rect x="22" y="68" width="16" height="24" rx="8" fill="#FFF8F0"/>
+  <rect x="122" y="68" width="16" height="24" rx="8" fill="#FFF8F0"/>
+  <circle cx="80" cy="80" r="11" fill="#F2B33D"/>
+  <!-- Nom -->
+  <text x="178" y="108" font-family="Avenir Next, Arial Rounded MT Bold, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" letter-spacing="-2" fill="#2B2118">pacity</text>
+  <circle cx="440" cy="101" r="8" fill="#F2B33D"/>
+</svg>

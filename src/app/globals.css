@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* Palette Pacity (identique à la version Softr). */
+@theme {
+  --color-accent: #e2583e;        /* terracotta */
+  --color-accent-dark: #c2452d;
+  --color-accent-soft: #fbe3dc;
+  --color-ink: #2b2118;           /* texte */
+  --color-muted: #6e5b4b;
+  --color-cream: #fff8f0;         /* fond */
+  --color-surface: #ffffff;
+  --color-line: #efe2d3;
+  --color-sage: #4e8b6e;          /* succès */
+  --color-sage-soft: #e3efe8;
+  --color-mustard: #f2b33d;       /* alerte */
+  --color-mustard-soft: #fdf1d6;
+  --color-danger: #c2362b;
+  --color-danger-soft: #f8e0dd;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --radius-card: 1rem;
+}
+
+html, body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Composants réutilisés sur toutes les pages (utilitaires Tailwind v4). */
+@utility card {
+  @apply rounded-[var(--radius-card)] border border-line bg-surface;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-accent text-white hover:bg-accent-dark;
+}
+@utility btn-ghost {
+  @apply btn border border-line bg-surface text-ink hover:bg-cream;
+}
+@utility field {
+  @apply w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/20;
+}
+@utility label {
+  @apply mb-1.5 block text-sm font-medium text-ink;
+}
+@utility page-title {
+  @apply text-2xl font-bold tracking-tight text-ink sm:text-3xl;
+}
+@utility page-lead {
+  @apply mt-1.5 max-w-2xl text-sm text-muted sm:text-base;
+}
+@utility table-wrap {
+  @apply overflow-x-auto rounded-[var(--radius-card)] border border-line bg-surface;
+}
+@utility data-table {
+  @apply w-full min-w-[560px] text-left text-sm;
+  & th {
+    @apply border-b border-line bg-cream/60 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted;
+  }
+  & td {
+    @apply border-b border-line/70 px-4 py-3 align-middle;
+  }
+  & tr:last-child td {
+    @apply border-b-0;
+  }
+}
