@@ -49,7 +49,9 @@ export default async function AllBookingsPage({ searchParams }: { searchParams: 
       ]} />
 
       {rows.length === 0 ? (
-        <EmptyState>Aucune réservation ne correspond à ces filtres.</EmptyState>
+        <EmptyState>{all.length === 0
+          ? "Aucune réservation pour l’instant : elles apparaîtront ici dès qu’un membre réservera une salle."
+          : "Aucune réservation ne correspond à ces filtres."}</EmptyState>
       ) : (
         <div className="table-wrap">
           <table className="data-table min-w-[820px]">
