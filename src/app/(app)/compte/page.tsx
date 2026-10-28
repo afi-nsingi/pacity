@@ -1,7 +1,6 @@
 import { requireSession } from "@/lib/session";
 import { PLAN_LABEL } from "@/lib/types";
 import { PageHeader } from "@/components/ui";
-import { PasswordForm } from "./password-form";
 
 export const metadata = { title: "Mon compte" };
 
@@ -14,7 +13,7 @@ export default async function AccountPage() {
   ];
   return (
     <>
-      <PageHeader title="Mon compte" lead="Vos informations chez Pacity. Votre nom et votre abonnement sont gérés par l’équipe Pacity ; votre mot de passe, par vous." />
+      <PageHeader title="Mon compte" lead="Vos informations chez Pacity. Pour les mettre à jour, passez par l’équipe Pacity." />
       <div className="card max-w-xl p-6">
         <div className="mb-6 grid h-16 w-16 place-items-center rounded-full bg-accent text-2xl font-bold text-white">
           {profile.full_name.charAt(0)}
@@ -28,7 +27,6 @@ export default async function AccountPage() {
           ))}
         </dl>
       </div>
-      <div className="mt-6"><PasswordForm /></div>
     </>
   );
 }

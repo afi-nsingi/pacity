@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/confidentialite", "/reglement", "/mot-de-passe-oublie", "/reinitialiser"];
+const PUBLIC_PATHS = ["/login", "/confidentialite", "/reglement"];
 
 // Rafraîchit la session à chaque requête et renvoie vers /login
 // toute page privée ouverte sans être connecté.

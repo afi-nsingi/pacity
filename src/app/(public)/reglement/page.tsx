@@ -4,7 +4,7 @@ const RULES = [
   ["Réservez avant d’entrer.", "Une salle s’utilise uniquement sur un créneau confirmé dans l’application. Pas de réservation ? Vérifiez les créneaux libres, c’est rapide."],
   ["Respectez votre créneau.", "Arrivez à l’heure et libérez la salle à la fin : le membre suivant compte dessus."],
   ["Un empêchement ?", "Prévenez l’équipe Pacity au plus tôt pour libérer le créneau. En cas d’annulation, vos crédits vous sont rendus."],
-  ["Vos crédits, à votre rythme.", "Les 20 crédits mensuels de l’abonnement Full Time se cumulent d’un mois sur l’autre. En cas de résiliation, les crédits non utilisés restent attachés à votre compte et redeviennent utilisables si vous vous réabonnez ; ils ne donnent lieu à aucun remboursement."],
+  ["Vos crédits, à votre rythme.", "Les 20 crédits mensuels de l’abonnement Full Time se cumulent d’un mois sur l’autre : ceux que vous n’utilisez pas restent sur votre compte."],
   ["Laissez la salle comme vous l’avez trouvée.", "Chaises remises en place, tableau effacé, déchets jetés, fenêtres fermées."],
   ["Prenez soin du matériel.", "Écran, câbles et télécommandes restent dans la salle. Un souci ? Signalez-le à l’équipe."],
   ["Boissons oui, repas non.", "Pour garder les salles agréables, les repas se prennent dans les espaces dédiés."],

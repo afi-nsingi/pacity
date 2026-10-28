@@ -18,7 +18,7 @@ export default function PrivacyPage() {
       <H2>1. Les données utilisées</H2>
       <ul className="mt-3 list-disc space-y-1 pl-5">
         <li><strong>Nom</strong> : vous accueillir et identifier vos réservations.</li>
-        <li><strong>Adresse e-mail et mot de passe</strong> : vous connecter (le mot de passe est chiffré, personne ne peut le lire) et vous envoyer la confirmation ou l’annulation de vos réservations.</li>
+        <li><strong>Adresse e-mail et mot de passe</strong> : vous connecter (le mot de passe est chiffré, personne ne peut le lire).</li>
         <li><strong>Abonnement</strong> (Full Time ou Nomad) : vérifier si vous pouvez réserver.</li>
         <li><strong>Rôle</strong> (membre ou gérant) : afficher les bons écrans et les bons droits.</li>
         <li><strong>Solde et historique de crédits</strong> : garder la trace de chaque débit, remboursement et renouvellement.</li>
@@ -37,7 +37,6 @@ export default function PrivacyPage() {
       <ul className="mt-3 list-disc space-y-1 pl-5">
         <li><strong>Supabase</strong> : base de données et connexion (comptes, salles, réservations, crédits).</li>
         <li><strong>Vercel</strong> : hébergement de l’application.</li>
-        <li><strong>Google (Gmail)</strong> : envoi des e-mails de confirmation et d’annulation.</li>
       </ul>
       <p className="mt-3">Localisation des données et garanties contractuelles : <strong>à confirmer par Pacity</strong> selon les offres souscrites.</p>
 

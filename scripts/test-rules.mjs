@@ -30,7 +30,6 @@ function slot(hour, dayOffset = 2) {
   return new Date(probe.getTime() - (parisHour - hour) * 3600000).toISOString();
 }
 
-const testStart = new Date().toISOString();
 let passed = 0, failed = 0;
 const created = [];
 function check(label, ok, detail = "") {
@@ -66,6 +65,15 @@ const past = await lea.rpc("book_room", { p_room_id: room("Phone Booth").id, p_s
 check("Créneau passé : refusé", /passé/.test(past.error?.message ?? ""), past.error?.message);
 const late = await lea.rpc("book_room", { p_room_id: room("Phone Booth").id, p_starts_at: slot(19), p_hours: 2 });
 check("Fin après 20:00 : refusé", /08:00 à 20:00/.test(late.error?.message ?? ""), late.error?.message);
+const early = await lea.rpc("book_room", { p_room_id: room("Phone Booth").id, p_starts_at: slot(7) });
+check("Avant 08:00 : refusé", /08:00 à 20:00/.test(early.error?.message ?? ""), early.error?.message);
+const halfHour = await lea.rpc("book_room", { p_room_id: room("Phone Booth").id, p_starts_at: new Date(new Date(slot(10)).getTime() + 1800000).toISOString() });
+check("Créneau qui ne commence pas à l'heure pile : refusé", /heure pile/.test(halfHour.error?.message ?? ""), halfHour.error?.message);
+const saturday = new Date(slot(10)); while (saturday.getUTCDay() !== 6) saturday.setUTCDate(saturday.getUTCDate() + 1);
+const weekend = await lea.rpc("book_room", { p_room_id: room("Phone Booth").id, p_starts_at: saturday.toISOString() });
+check("Week-end : refusé", /week-end/.test(weekend.error?.message ?? ""), weekend.error?.message);
+const tooFar = await lea.rpc("book_room", { p_room_id: room("Phone Booth").id, p_starts_at: new Date(new Date(slot(10)).getTime() + 35 * 86400000).toISOString() });
+check("Plus de 30 jours à l'avance : refusé", /30 jours/.test(tooFar.error?.message ?? ""), tooFar.error?.message);
 const manager = await mathieu.rpc("book_room", { p_room_id: room("Phone Booth").id, p_starts_at: slot(9) });
 check("Le gérant ne réserve pas : refusé", !!manager.error, "");
 
@@ -97,56 +105,6 @@ check("Solde de Léa revenu au départ", (await balance(lea)) === leaBefore);
 // Nettoyage : la recette ne laisse aucune trace dans la démo. Personne ne peut supprimer
 // depuis l'application (règle métier) : on passe par la clé d'administration, lue dans .env.local.
 const admin = createClient(URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
-
-console.log("Gestion des membres (abonnement)");
-const samiId = (await sami.from("profiles").select("id").single()).data.id;
-const samiBefore = await balance(sami);
-const hack = await hugo.rpc("set_member_plan", { p_member_id: samiId, p_plan: "full_time" });
-check("Un membre ne peut pas changer un abonnement", /gérant/.test(hack.error?.message ?? ""), hack.error?.message);
-const toFull = await mathieu.rpc("set_member_plan", { p_member_id: samiId, p_plan: "full_time" });
-check("Le gérant passe Sami en Full Time", !toFull.error && toFull.data?.plan === "full_time", toFull.error?.message);
-check("Sami reçoit tout de suite les 20 crédits du mois", (await balance(sami)) === samiBefore + 20);
-await mathieu.rpc("set_member_plan", { p_member_id: samiId, p_plan: "nomad" });
-await mathieu.rpc("set_member_plan", { p_member_id: samiId, p_plan: "full_time" });
-check("Repasser Full Time le même mois : pas de doublon", (await balance(sami)) === samiBefore + 20);
-await mathieu.rpc("set_member_plan", { p_member_id: samiId, p_plan: "nomad" });
-check("Retour en Nomad : crédits conservés", (await balance(sami)) === samiBefore + 20);
-const frozen = await sami.rpc("book_room", { p_room_id: room("Phone Booth").id, p_starts_at: slot(9) });
-check("Retour en Nomad : crédits gelés (réservation refusée)", /Nomad/.test(frozen.error?.message ?? ""), frozen.error?.message);
-// Remise en état de Sami (Nomad, sans les crédits du test).
-await admin.from("credit_ledger").delete().eq("member_id", samiId).eq("kind", "monthly").gte("created_at", new Date(Date.now() - 600000).toISOString());
-check("Sami remis dans son état de départ", (await balance(sami)) === samiBefore);
-const planEvents = await mathieu.from("subscription_events").select("event").eq("member_id", samiId).eq("event", "plan_change").gte("created_at", testStart);
-check("Historique : chaque changement d'abonnement est tracé (4)", planEvents.data?.length === 4, String(planEvents.data?.length));
-
-console.log("Résiliation et réactivation");
-const hugoId = (await hugo.from("profiles").select("id").single()).data.id;
-const hugoBefore = await balance(hugo);
-const future = await hugo.rpc("book_room", { p_room_id: room("Phone Booth").id, p_starts_at: slot(16) });
-if (future.data) created.push(future.data.id);
-const hackCancel = await hugo.rpc("cancel_membership", { p_member_id: hugoId, p_reason: "test" });
-check("Un membre ne peut pas résilier", /gérant/.test(hackCancel.error?.message ?? ""), hackCancel.error?.message);
-const noMotive = await mathieu.rpc("cancel_membership", { p_member_id: hugoId, p_reason: " " });
-check("Résiliation : motif obligatoire", /motif/.test(noMotive.error?.message ?? ""), noMotive.error?.message);
-const resil = await mathieu.rpc("cancel_membership", { p_member_id: hugoId, p_reason: "Recette automatique" });
-check("Résiliation : 1 réservation à venir annulée", !resil.error && resil.data === 1, resil.error?.message ?? String(resil.data));
-check("Résiliation : réservation remboursée, crédits conservés", (await balance(hugo)) === hugoBefore);
-const blockedBooking = await hugo.rpc("book_room", { p_room_id: room("Phone Booth").id, p_starts_at: slot(17) });
-check("Résilié : réservation impossible", /résilié/.test(blockedBooking.error?.message ?? ""), blockedBooking.error?.message);
-const noRenew = await admin.rpc("grant_current_month", { p_member_id: hugoId });
-check("Résilié : aucun renouvellement", noRenew.data === 0, JSON.stringify(noRenew));
-const noPlanChange = await mathieu.rpc("set_member_plan", { p_member_id: hugoId, p_plan: "nomad" });
-check("Résilié : changement d'abonnement refusé", /réactivez/.test(noPlanChange.error?.message ?? ""), noPlanChange.error?.message);
-const react = await mathieu.rpc("reactivate_membership", { p_member_id: hugoId, p_plan: "full_time" });
-check("Réactivation : membre actif en Full Time", !react.error && react.data?.status === "active", react.error?.message);
-const hugoEvents = await mathieu.from("subscription_events").select("event, note").eq("member_id", hugoId).gte("created_at", testStart).order("created_at");
-check("Historique : résiliation (avec motif) puis réactivation",
-  hugoEvents.data?.map((e) => e.event).join(",") === "cancellation,reactivation" && hugoEvents.data?.[0].note === "Recette automatique",
-  JSON.stringify(hugoEvents.data));
-// Remise en état : crédits éventuels de la réactivation et événements de la recette.
-await admin.from("credit_ledger").delete().eq("member_id", hugoId).eq("kind", "monthly").gte("created_at", testStart);
-await admin.from("subscription_events").delete().in("member_id", [samiId, hugoId]).neq("event", "signup").gte("created_at", testStart);
-check("Hugo remis dans son état de départ", (await balance(hugo)) === hugoBefore);
 if (created.length) {
   const ledger = await admin.from("credit_ledger").delete().in("booking_id", created);
   const bookings = await admin.from("bookings").delete().in("id", created);

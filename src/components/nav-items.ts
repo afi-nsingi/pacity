@@ -9,7 +9,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/reserver", label: "Réserver", icon: "calendar-plus", roles: ["member"] },
   { href: "/mes-reservations", label: "Mes réservations", icon: "inbox", roles: ["member"] },
   { href: "/gerant/reservations", label: "Réservations", icon: "inbox", roles: ["manager"] },
-  { href: "/gerant/abonnes", label: "Membres", icon: "credit-card", roles: ["manager"] },
   { href: "/salles", label: "Salles", icon: "briefcase", roles: ["member", "manager"] },
   { href: "/mon-solde", label: "Mon solde", icon: "wallet", roles: ["member"] },
 ];

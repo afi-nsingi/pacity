@@ -1,12 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { parisToIso } from "@/lib/dates";
-import { firstName, getSession } from "@/lib/session";
-import { sendMail } from "@/lib/mail";
-import { confirmationEmail } from "@/lib/emails";
 
 export type BookState =
   | { status: "idle" }
@@ -32,14 +28,5 @@ export async function bookRoom(_prev: BookState, formData: FormData): Promise<Bo
 
   const { data: room } = await supabase.from("rooms").select("name").eq("id", roomId).single();
   revalidatePath("/", "layout");
-
-  // E-mail de confirmation, envoyé après la réponse : la réservation ne dépend jamais de Gmail.
-  const session = await getSession();
-  if (session?.email) {
-    const mail = confirmationEmail(session.email, {
-      firstName: firstName(session.profile.full_name), roomName: room?.name ?? "", startsAt: data.starts_at, endsAt: data.ends_at, cost: data.cost,
-    });
-    after(() => sendMail(mail));
-  }
   return { status: "success", roomName: room?.name ?? "", startsAt: data.starts_at, endsAt: data.ends_at, cost: data.cost };
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState } from "react";
 import { submitWithoutReset } from "@/lib/forms";
 import { PasswordInput } from "@/components/password-input";
@@ -25,8 +24,8 @@ export function LoginForm({ next }: { next: string }) {
       <button type="submit" disabled={pending} className="btn-primary w-full">
         {pending ? "Connexion…" : "Se connecter"}
       </button>
-      <p className="text-center text-sm">
-        <Link href="/mot-de-passe-oublie" className="text-muted hover:text-accent">Mot de passe oublié ?</Link>
+      <p className="text-center text-xs text-muted">
+        Mot de passe oublié ? Rapprochez-vous de l’équipe Pacity.
       </p>
     </form>
   );

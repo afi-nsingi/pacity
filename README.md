@@ -8,49 +8,83 @@ Cas pratique NoCode Factory, réalisé avec **Claude Code** par Afi NSINGI NDOMB
 
 **Démo en ligne : https://pacity-reservations.vercel.app** (comptes de démonstration transmis à part).
 
-## Ce que fait l'application
+## Ce que fait l'application (le périmètre du brief)
 
-**Membres**
-- voir les salles (photo, capacité, coût en crédits par heure) et les créneaux déjà pris ;
-- réserver une salle en un clic : la réservation est **confirmée immédiatement** et les crédits sont débités ;
-- suivre ses réservations, son solde et l'historique de ses crédits ;
-- recevoir un e-mail de confirmation, et un e-mail avec le motif si le gérant annule.
-- changer son mot de passe depuis « Mon compte » (le mot de passe actuel est vérifié).
-- réinitialiser seul un mot de passe oublié (lien à usage unique par e-mail, valable une heure).
+**Membre**
+- consulter les salles disponibles et en réserver une : la réservation est **confirmée immédiatement** et les crédits sont débités ;
+- consulter les caractéristiques de chaque salle (photo, capacité, usage, coût par heure) ;
+- suivre son solde de crédits et l'historique de ses mouvements ;
+- accéder à ses propres réservations.
 
 **Gérant**
-- voir toutes les réservations (recherche, filtres membre, salle, période, statut) ;
-- annuler n'importe quelle réservation avec un motif : le membre est remboursé ;
-- ajouter un membre (e-mail de bienvenue : il choisit lui-même son mot de passe), changer, résilier ou réactiver son abonnement ;
-- consulter la fiche de chaque membre : historique daté de l'abonnement (inscription, changements, résiliation, réactivation), réservations et crédits ;
-- suivre les abonnements, les soldes et chaque mouvement de crédits.
-- rendre une salle indisponible (travaux, fuite, privatisation…) avec un motif affiché aux membres, puis la rouvrir.
+- consulter les réservations de tous les membres ;
+- annuler n'importe quelle réservation, avec un motif : le membre est remboursé.
+
+**Options V1 du brief déjà livrées**
+- réserver une salle pour plus d'une heure (de 1 à 4 heures) ;
+- rendre une salle temporairement indisponible (travaux, fuite, privatisation…).
 
 ## Règles métier
 
 | Règle | Où elle est garantie |
 |---|---|
+| Coût par heure : Phone Booth 1, Small Room 2, Medium Room 3, Large Room 5 crédits | table `rooms`, calcul dans `book_room` |
 | Deux réservations confirmées d'une même salle ne se chevauchent jamais | contrainte d'exclusion PostgreSQL (`no_overlap`) |
 | Abonnement Nomad : aucune réservation | fonction `book_room` |
 | Solde suffisant, débit dans la même transaction que la réservation | fonction `book_room` |
 | Salle rendue indisponible par le gérant : plus aucune réservation possible | fonction `book_room` + RLS (seul le gérant modifie une salle) |
 | Créneaux à l'heure pile, 08:00 → 20:00, du lundi au vendredi, pas dans le passé, jusqu'à 30 jours | fonction `book_room` (et le formulaire) |
 | Annulation par le gérant seulement, motif obligatoire, un seul remboursement | fonction `cancel_booking` + index unique |
-| Changement d'abonnement par le gérant seulement ; passage Full Time = 20 crédits du mois tout de suite, jamais en double | fonction `set_member_plan` (migration 0003) |
-| Résiliation : plus de connexion, réservations à venir annulées et remboursées, crédits conservés et gelés, plus de renouvellement, e-mail au membre | `cancel_membership` + déclencheur sur les réservations (migration 0004) |
-| Historique d'abonnement complet, impossible à contourner | déclencheur sur `profiles` → table `subscription_events` |
 | Full Time : +20 crédits le 1er de chaque mois, cumulables, jamais en double | `grant_monthly_credits` planifiée par `pg_cron` + index unique |
 | Un membre ne voit que ses données ; personne n'écrit directement dans les crédits | Row Level Security |
 
 Les règles vivent **dans la base** : quelle que soit la page ou l'outil utilisé, elles s'appliquent.
 Le solde n'est jamais un champ modifié à la main : c'est la somme d'un registre de mouvements.
 
+**Hypothèses retenues** là où le brief restait ouvert (à valider avec Pacity) : horaires d'ouverture
+08:00–20:00 en semaine, réservations de 1 à 4 heures, horizon de 30 jours, refus si le solde est
+insuffisant, crédits rendus intégralement en cas d'annulation, annulation par l'équipe Pacity
+(le membre la prévient).
+
+## Organisation du projet
+
+| Étape | Date | Résultat |
+|---|---|---|
+| Première version no-code (Softr, Airtable, Make) | 22 → 25/10 | Cadrage, hypothèses, règles de gestion, design, recette |
+| Retour de NoCode Factory : refaire le cas en Claude Code | 28/10 | Même sujet, même cadrage, nouvelle réalisation en code |
+| Choix technique et base de données | 28/10 | Next.js + Supabase + Vercel ; règles métier écrites en SQL |
+| Écrans membre et gérant | 28/10 | Reprise du design de la première version |
+| Tests automatiques | 28/10 | Recette des règles contre la vraie base |
+| Mise en ligne | 28/10 | GitHub, puis Vercel à chaque envoi du code |
+| Recette par écran et par format | 28/10 | Membre, gérant, mobile, tablette, ordinateur |
+| Recentrage sur le périmètre du brief | 28/10 | Ajouts hors brief déplacés sur la branche `evolutions` |
+| Vidéo de démonstration et envoi | 29 → 30/10 | Lien testable, code, vidéo |
+
+## Priorisation (méthode MoSCoW)
+
+| Priorité | Contenu | Statut |
+|---|---|---|
+| **Indispensable** (Must) | Les fonctionnalités membre et gérant du brief, les règles de gestion | Livré |
+| **Important** (Should) | Options V1 du brief : plus d'une heure, salle indisponible | Livré |
+| **Optionnel** (Could) | E-mails, mot de passe oublié, gestion des membres et des abonnements | Prototypé sur la branche `evolutions`, hors application en ligne |
+| **Pas maintenant** (Won't) | Achat de crédits (paiement en ligne), options payantes (tarifs à fixer avec Pacity) | Proposé pour la suite |
+
+## Évolutions prêtes à livrer (branche `evolutions`)
+
+Prototypées et testées, mais volontairement **retirées de l'application en ligne** pour rester dans
+le périmètre du brief :
+- e-mails de confirmation et d'annulation ;
+- mot de passe oublié en autonomie et changement de mot de passe ;
+- ajout de membres, changement d'abonnement, résiliation et réactivation, avec un historique daté.
+
+La base de démonstration contient encore les tables et fonctions de ces évolutions
+(migrations `0003` et `0004` de la branche `evolutions`), sans aucun écran pour les utiliser.
+
 ## Technologies
 
 - **Next.js 15** (App Router, Server Actions, TypeScript) et **Tailwind CSS 4** ;
 - **Supabase** : PostgreSQL, authentification par e-mail et mot de passe, `pg_cron` ;
-- **Vercel** pour l'hébergement ;
-- e-mails envoyés par le serveur SMTP de Gmail, sans dépendance (`src/lib/mail.ts`).
+- **Vercel** pour l'hébergement.
 
 ## Structure
 
@@ -60,13 +94,13 @@ supabase/seed.sql      les 4 salles
 scripts/               comptes de démonstration et recette automatique des règles
 src/app/(app)/         pages connectées (membre et gérant)
 src/app/(public)/      confidentialité, règlement, accès refusé
-src/lib/               dates (heure de Paris), session, e-mails
+src/lib/               dates (heure de Paris), session
 ```
 
 ## Lancer le projet en local
 
 1. Créer un projet Supabase et exécuter, dans l'ordre, `supabase/migrations/0001_schema.sql`,
-   `0002_rules.sql`, `0003_members.sql`, `0004_subscription_history.sql` puis `supabase/seed.sql`.
+   `0002_rules.sql` puis `supabase/seed.sql`.
 2. Copier `.env.example` en `.env.local` et le compléter (aucune clé n'est dans le dépôt).
 3. Installer et lancer :
    ```bash
@@ -82,6 +116,6 @@ src/lib/               dates (heure de Paris), session, e-mails
 ## Construit avec Claude Code
 
 Le code, le schéma SQL, les tests et ce README ont été écrits avec Claude Code, en dialogue :
-choix de la stack, migration depuis une première version no-code (Softr, Airtable, Make),
-recette écran par écran. `CLAUDE.md` garde la mémoire du projet : décisions, pièges rencontrés,
-vérifications faites.
+choix de la stack, reprise du cadrage de la première version no-code, recette écran par écran,
+recentrage sur le périmètre du brief. `CLAUDE.md` garde la mémoire du projet : décisions, pièges
+rencontrés, vérifications faites.
