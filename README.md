@@ -6,6 +6,8 @@ facturation.
 
 Cas pratique NoCode Factory, réalisé avec **Claude Code** par Afi NSINGI NDOMBELE (octobre 2026).
 
+**Démo en ligne : https://pacity-reservations.vercel.app** (comptes de démonstration transmis à part).
+
 ## Ce que fait l'application
 
 **Membres**
