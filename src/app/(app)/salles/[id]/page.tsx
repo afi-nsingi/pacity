@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarPlus, Coins, Users } from "lucide-react";
+import { ArrowLeft, CalendarCheck, CalendarPlus, Coins, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/session";
 import { formatDate, formatSlot } from "@/lib/dates";
@@ -42,7 +42,15 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
           <div className="aspect-[16/9]"><RoomPhoto url={room.photo_url} name={room.name} /></div>
         </div>
         <div>
-          <h1 className="page-title">{room.name}</h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="page-title">{room.name}</h1>
+            {/* Gérant : charge de la salle, d'un coup d'œil. */}
+            {isManager && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-sage-soft px-3 py-1 text-sm font-semibold text-sage">
+                <CalendarCheck className="h-4 w-4" /> {upcoming} réservation{upcoming > 1 ? "s" : ""} à venir
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-muted">{room.usage}</p>
           <div className="mt-5 flex flex-wrap gap-3 text-sm">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 ring-1 ring-line"><Users className="h-4 w-4" /> {room.capacity} personne{room.capacity > 1 ? "s" : ""}</span>
