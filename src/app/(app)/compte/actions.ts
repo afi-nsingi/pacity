@@ -2,23 +2,20 @@
 
 import { createClient as createPlainClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { passwordProblem } from "@/lib/password";
 
 export type PasswordState =
   | { status: "idle" }
   | { status: "error"; message: string }
   | { status: "done"; at: number };
 
-const MIN_LENGTH = 10;
-
 export async function changePassword(_prev: PasswordState, formData: FormData): Promise<PasswordState> {
   const current = String(formData.get("current") ?? "");
   const next = String(formData.get("next") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
 
-  if (next.length < MIN_LENGTH || !/[A-Za-z]/.test(next) || !/\d/.test(next)) {
-    return { status: "error", message: `Choisissez au moins ${MIN_LENGTH} caractères, avec des lettres et au moins un chiffre.` };
-  }
-  if (next !== confirm) return { status: "error", message: "Les deux nouveaux mots de passe ne correspondent pas." };
+  const problem = passwordProblem(next, confirm);
+  if (problem) return { status: "error", message: problem };
   if (next === current) return { status: "error", message: "Le nouveau mot de passe doit être différent de l’actuel." };
 
   const supabase = await createClient();

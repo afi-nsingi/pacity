@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { submitWithoutReset } from "@/lib/forms";
 import { PasswordInput } from "@/components/password-input";
+import { PASSWORD_HINT } from "@/lib/password";
 import { changePassword, type PasswordState } from "./actions";
 
 export function PasswordForm() {
@@ -13,7 +14,7 @@ export function PasswordForm() {
     <form key={state.status === "done" ? state.at : "form"} onSubmit={submitWithoutReset(action)} className="card max-w-xl space-y-4 p-6">
       <div>
         <h2 className="text-lg font-bold">Changer mon mot de passe</h2>
-        <p className="mt-1 text-sm text-muted">Au moins 10 caractères, avec des lettres et au moins un chiffre.</p>
+        <p className="mt-1 text-sm text-muted">{PASSWORD_HINT}</p>
       </div>
       <div>
         <label htmlFor="current" className="label">Mot de passe actuel</label>

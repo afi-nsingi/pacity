@@ -9,10 +9,13 @@ type BookingInfo = { firstName: string; roomName: string; startsAt: string; ends
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 const credits = (n: number) => `${n} crédit${n > 1 ? "s" : ""}`;
 
-function layout(title: string, body: string) {
+type Button = { href: string; label: string } | null;
+
+function layout(title: string, body: string, action?: Button) {
   const site = process.env.NEXT_PUBLIC_SITE_URL;
-  const button = site
-    ? `<p style="margin:28px 0 0"><a href="${site}/mes-reservations" style="background:#E2583E;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:12px;display:inline-block">Voir mes réservations</a></p>`
+  const target = action !== undefined ? action : site ? { href: `${site}/mes-reservations`, label: "Voir mes réservations" } : null;
+  const button = target
+    ? `<p style="margin:28px 0 0"><a href="${target.href}" style="background:#E2583E;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:12px;display:inline-block">${target.label}</a></p>`
     : "";
   return `<!doctype html><html lang="fr"><body style="margin:0;background:#FFF8F0;font-family:Helvetica,Arial,sans-serif;color:#2B2118">
 <div style="max-width:560px;margin:0 auto;padding:32px 20px">
@@ -56,5 +59,16 @@ export function cancellationEmail(to: string, b: BookingInfo & { reason: string 
       `<p style="margin:0;line-height:1.6">Bonjour ${escape(b.firstName)}, l’équipe Pacity a dû annuler votre réservation :</p>
       ${details(b, `<tr><td style="padding:6px 0;color:#7A6A5C">Motif</td><td style="padding:6px 0;font-weight:600">${escape(b.reason)}</td></tr>`)}
       <p style="margin:0;line-height:1.6"><strong style="color:#4E8B6E">${credits(b.cost)} vous ${b.cost > 1 ? "ont" : "a"} été rendu${b.cost > 1 ? "s" : ""}.</strong> Vous pouvez réserver un autre créneau quand vous le souhaitez.</p>`),
+  };
+}
+
+export function passwordResetEmail(to: string, link: string): Mail {
+  return {
+    to,
+    subject: "Pacity · Choisissez un nouveau mot de passe",
+    html: layout("Mot de passe oublié ? Pas de souci 🔑",
+      `<p style="margin:0;line-height:1.6">Vous avez demandé à réinitialiser votre mot de passe Pacity. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.</p>
+      <p style="margin:16px 0 0;line-height:1.6;color:#7A6A5C;font-size:14px">Ce lien ne sert qu’une fois et expire dans une heure. Vous n’êtes pas à l’origine de cette demande ? Ignorez simplement cet e-mail : votre mot de passe actuel reste valable.</p>`,
+      { href: link, label: "Choisir un nouveau mot de passe" }),
   };
 }

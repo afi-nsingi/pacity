@@ -16,6 +16,7 @@ Cas pratique NoCode Factory, réalisé avec **Claude Code** par Afi NSINGI NDOMB
 - suivre ses réservations, son solde et l'historique de ses crédits ;
 - recevoir un e-mail de confirmation, et un e-mail avec le motif si le gérant annule.
 - changer son mot de passe depuis « Mon compte » (le mot de passe actuel est vérifié).
+- réinitialiser seul un mot de passe oublié (lien à usage unique par e-mail, valable une heure).
 
 **Gérant**
 - voir toutes les réservations (recherche, filtres membre, salle, période, statut) ;
