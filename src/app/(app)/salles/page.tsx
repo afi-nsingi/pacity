@@ -9,9 +9,8 @@ import { RoomPhoto } from "@/components/room-photo";
 
 export const metadata = { title: "Nos salles" };
 
-type Search = { usage?: string; places?: string; budget?: string; dispo?: string };
+type Search = { usage?: string; participants?: string; budget?: string; dispo?: string };
 
-const places = (n: number) => `${n} pers. ou plus`;
 const budget = (n: number) => `Jusqu’à ${n} crédit${n > 1 ? "s" : ""}/h`;
 
 export default async function RoomsPage({ searchParams }: { searchParams: Promise<Search> }) {
@@ -26,12 +25,17 @@ export default async function RoomsPage({ searchParams }: { searchParams: Promis
   // Options des filtres tirées des salles elles-mêmes : une nouvelle salle y apparaît d'office.
   const uniq = (values: number[]) => [...new Set(values)].sort((a, b) => a - b);
   const usages = [...new Set(rooms.map((r) => r.usage))];
-  const capacities = uniq(rooms.map((r) => r.capacity)).filter((n) => n > 1);
+  // « Combien êtes-vous ? » : une tranche par capacité de salle (1 personne, 2 à 4, 5 à 8, 9 à 16…) ;
+  // une tranche montre les salles assez grandes pour son plus petit groupe.
+  const groups = uniq(rooms.map((r) => r.capacity)).map((max, i, all) => {
+    const min = i === 0 ? 1 : all[i - 1] + 1;
+    return { min, label: min === max ? `${max} personne${max > 1 ? "s" : ""}` : `${min} à ${max} personnes` };
+  });
   const prices = uniq(rooms.map((r) => r.credits_per_hour));
 
   const shown = rooms.filter((r) =>
     (!f.usage || r.usage === f.usage) &&
-    (!f.places || capacities.some((n) => places(n) === f.places && r.capacity >= n)) &&
+    (!f.participants || groups.some((g) => g.label === f.participants && r.capacity >= g.min)) &&
     (!f.budget || prices.some((n) => budget(n) === f.budget && r.credits_per_hour <= n)) &&
     (!f.dispo || (f.dispo === "Indisponible") === !!r.unavailable_reason));
 
@@ -57,7 +61,7 @@ export default async function RoomsPage({ searchParams }: { searchParams: Promis
 
       <FilterBar filters={[
         { name: "usage", label: "Usage", options: usages },
-        { name: "places", label: "Places", options: capacities.map(places) },
+        { name: "participants", label: "Participants", options: groups.map((g) => g.label) },
         { name: "budget", label: "Budget", options: prices.map(budget) },
         { name: "dispo", label: "Disponibilité", options: ["Réservable", "Indisponible"] },
       ]} />
