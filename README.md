@@ -15,6 +15,7 @@ Cas pratique NoCode Factory, réalisé avec **Claude Code** par Afi NSINGI NDOMB
 - réserver une salle en un clic : la réservation est **confirmée immédiatement** et les crédits sont débités ;
 - suivre ses réservations, son solde et l'historique de ses crédits ;
 - recevoir un e-mail de confirmation, et un e-mail avec le motif si le gérant annule.
+- changer son mot de passe depuis « Mon compte » (le mot de passe actuel est vérifié).
 
 **Gérant**
 - voir toutes les réservations (recherche, filtres membre, salle, période, statut) ;
