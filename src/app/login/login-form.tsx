@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { submitWithoutReset } from "@/lib/forms";
+import { PasswordInput } from "@/components/password-input";
 import { signIn, type LoginState } from "./actions";
 
 export function LoginForm({ next }: { next: string }) {
@@ -15,7 +16,7 @@ export function LoginForm({ next }: { next: string }) {
       </div>
       <div>
         <label htmlFor="password" className="label">Mot de passe</label>
-        <input id="password" name="password" type="password" autoComplete="current-password" required className="field" placeholder="Votre mot de passe" />
+        <PasswordInput id="password" name="password" autoComplete="current-password" required placeholder="Votre mot de passe" />
       </div>
       {state.error && (
         <p role="alert" className="rounded-xl bg-danger-soft px-3 py-2 text-sm text-danger">{state.error}</p>

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { submitWithoutReset } from "@/lib/forms";
+import { PasswordInput } from "@/components/password-input";
 import { changePassword, type PasswordState } from "./actions";
 
 export function PasswordForm() {
@@ -16,16 +17,16 @@ export function PasswordForm() {
       </div>
       <div>
         <label htmlFor="current" className="label">Mot de passe actuel</label>
-        <input id="current" name="current" type="password" autoComplete="current-password" required className="field" />
+        <PasswordInput id="current" name="current" autoComplete="current-password" required />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="next" className="label">Nouveau mot de passe</label>
-          <input id="next" name="next" type="password" autoComplete="new-password" required minLength={10} className="field" />
+          <PasswordInput id="next" name="next" autoComplete="new-password" required minLength={10} />
         </div>
         <div>
           <label htmlFor="confirm" className="label">Confirmez-le</label>
-          <input id="confirm" name="confirm" type="password" autoComplete="new-password" required minLength={10} className="field" />
+          <PasswordInput id="confirm" name="confirm" autoComplete="new-password" required minLength={10} />
         </div>
       </div>
       {state.status === "error" && (
