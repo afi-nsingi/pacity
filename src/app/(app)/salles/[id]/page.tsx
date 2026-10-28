@@ -55,7 +55,8 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
               Salle momentanément indisponible : {room.unavailable_reason}
             </p>
           )}
-          {isManager && <AvailabilityPanel roomId={room.id} reason={room.unavailable_reason} upcoming={upcoming} />}
+          {/* La clé recrée le panneau quand l'état de la salle change (formulaire refermé). */}
+          {isManager && <AvailabilityPanel key={room.unavailable_reason ?? "reservable"} roomId={room.id} reason={room.unavailable_reason} upcoming={upcoming} />}
           {!isManager && !room.unavailable_reason && (
             <Link href={`/reserver?salle=${room.id}`} className="btn-primary mt-6">
               <CalendarPlus className="h-4 w-4" /> Réserver cette salle
