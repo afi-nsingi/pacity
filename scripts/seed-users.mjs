@@ -3,7 +3,7 @@
 // Les mots de passe sont générés ici et écrits dans demo-accounts.local.md
 // (fichier ignoré par Git : il ne doit jamais être publié).
 import { createClient } from "@supabase/supabase-js";
-import { randomBytes } from "node:crypto";
+import { randomInt } from "node:crypto";
 import { writeFileSync } from "node:fs";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -36,12 +36,17 @@ const USERS = [
   { tag: "mathieu", full_name: "Mathieu", role: "manager", plan: null, credits: [] },
 ];
 
-const password = () => `Pacity-${randomBytes(6).toString("base64url")}-26!`;
+// Format lisible « Prénom.123456789 » : prénom sans accent + 9 chiffres tirés au hasard
+// (pas une suite fixe : l'appli est publique et les prénoms sont visibles dans le code).
+const password = (fullName) => {
+  const first = fullName.split(" ")[0].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return `${first}.${Array.from({ length: 9 }, () => randomInt(10)).join("")}`;
+};
 const lines = ["# Comptes de démonstration Pacity (NE PAS PUBLIER)", ""];
 
 for (const u of USERS) {
   const email = alias(u.tag);
-  const pwd = password();
+  const pwd = password(u.full_name);
   let { data: created, error } = await admin.auth.admin.createUser({ email, password: pwd, email_confirm: true });
   if (error && /already/i.test(error.message)) {
     const { data: list } = await admin.auth.admin.listUsers();
