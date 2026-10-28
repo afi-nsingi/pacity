@@ -87,3 +87,36 @@ export function welcomeEmail(to: string, firstName: string, plan: "full_time" | 
       { href: link, label: "Choisir mon mot de passe" }),
   };
 }
+
+export function membershipCancelledEmail(to: string, b: { firstName: string; reason: string; cancelledBookings: number; balance: number }): Mail {
+  const bookings = b.cancelledBookings > 0
+    ? `<li style="margin-bottom:6px">Vos ${b.cancelledBookings} réservation${b.cancelledBookings > 1 ? "s" : ""} à venir ${b.cancelledBookings > 1 ? "ont été annulées" : "a été annulée"} et vos crédits rendus.</li>`
+    : "";
+  return {
+    to,
+    subject: "Pacity · Votre abonnement a été résilié",
+    html: layout(`Votre abonnement a été résilié`,
+      `<p style="margin:0;line-height:1.6">Bonjour ${escape(b.firstName)}, l’équipe Pacity a résilié votre abonnement.</p>
+      <p style="margin:16px 0 0;line-height:1.6"><strong>Motif :</strong> ${escape(b.reason)}</p>
+      <ul style="margin:16px 0 0;padding-left:20px;line-height:1.6">
+        ${bookings}
+        <li style="margin-bottom:6px">Votre accès à l’application de réservation est désactivé.</li>
+        <li>Vos ${credits(b.balance)} restent sur votre compte : ils seront de nouveau utilisables si vous vous réabonnez.</li>
+      </ul>
+      <p style="margin:16px 0 0;line-height:1.6;color:#7A6A5C;font-size:14px">Une erreur ou l’envie de revenir ? Répondez à cet e-mail ou passez nous voir : nous réactivons votre abonnement en un instant.</p>`,
+      null),
+  };
+}
+
+export function membershipReactivatedEmail(to: string, b: { firstName: string; plan: "full_time" | "nomad"; balance: number }): Mail {
+  const site = process.env.NEXT_PUBLIC_SITE_URL;
+  return {
+    to,
+    subject: "Pacity · Votre abonnement est réactivé 🎉",
+    html: layout(`Ravis de vous revoir, ${escape(b.firstName)} 🎉`,
+      `<p style="margin:0;line-height:1.6">Votre abonnement <strong>${b.plan === "full_time" ? "Full Time" : "Nomad"}</strong> est de nouveau actif et votre accès à l’application est rétabli.</p>
+      <p style="margin:16px 0 0;line-height:1.6">Solde actuel : <strong>${credits(b.balance)}</strong>${b.plan === "full_time" ? " (20 crédits par mois, cumulables)." : "."}</p>
+      <p style="margin:16px 0 0;line-height:1.6;color:#7A6A5C;font-size:14px">Connectez-vous avec votre mot de passe habituel. Oublié ? Utilisez « Mot de passe oublié ? » sur la page de connexion.</p>`,
+      site ? { href: `${site}/login`, label: "Me connecter" } : null),
+  };
+}

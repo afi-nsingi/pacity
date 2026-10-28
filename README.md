@@ -37,7 +37,7 @@ Cas pratique NoCode Factory, réalisé avec **Claude Code** par Afi NSINGI NDOMB
 | Créneaux à l'heure pile, 08:00 → 20:00, du lundi au vendredi, pas dans le passé, jusqu'à 30 jours | fonction `book_room` (et le formulaire) |
 | Annulation par le gérant seulement, motif obligatoire, un seul remboursement | fonction `cancel_booking` + index unique |
 | Changement d'abonnement par le gérant seulement ; passage Full Time = 20 crédits du mois tout de suite, jamais en double | fonction `set_member_plan` (migration 0003) |
-| Résiliation : plus de connexion, réservations à venir annulées et remboursées, crédits conservés et gelés, plus de renouvellement | `cancel_membership` + déclencheur sur les réservations (migration 0004) |
+| Résiliation : plus de connexion, réservations à venir annulées et remboursées, crédits conservés et gelés, plus de renouvellement, e-mail au membre | `cancel_membership` + déclencheur sur les réservations (migration 0004) |
 | Historique d'abonnement complet, impossible à contourner | déclencheur sur `profiles` → table `subscription_events` |
 | Full Time : +20 crédits le 1er de chaque mois, cumulables, jamais en double | `grant_monthly_credits` planifiée par `pg_cron` + index unique |
 | Un membre ne voit que ses données ; personne n'écrit directement dans les crédits | Row Level Security |

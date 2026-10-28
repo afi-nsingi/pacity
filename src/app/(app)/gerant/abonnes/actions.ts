@@ -3,11 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, memberEmail } from "@/lib/supabase/admin";
 import { getSession, firstName } from "@/lib/session";
 import { passwordLink, trustedOrigin } from "@/lib/site";
 import { sendMail } from "@/lib/mail";
-import { welcomeEmail } from "@/lib/emails";
+import { membershipCancelledEmail, membershipReactivatedEmail, welcomeEmail } from "@/lib/emails";
 
 export type MemberState = { status: "idle" } | { status: "error"; message: string } | { status: "done"; message: string; at: number };
 
@@ -87,6 +87,8 @@ export async function cancelMember(_prev: MemberState, formData: FormData): Prom
   await createAdminClient()?.auth.admin.updateUserById(memberId, { ban_duration: "876000h" });
   revalidatePath("/", "layout");
   const n = Number(cancelled ?? 0);
+  await notify(supabase, memberId, (to, name, balance) =>
+    membershipCancelledEmail(to, { firstName: firstName(name), reason, cancelledBookings: n, balance }));
   return { status: "done", at: Date.now(), message: `Abonnement résilié.${n ? ` ${n} réservation${n > 1 ? "s" : ""} à venir annulée${n > 1 ? "s" : ""} et remboursée${n > 1 ? "s" : ""}.` : ""} Le membre ne peut plus se connecter ; ses crédits sont conservés.` };
 }
 
@@ -100,5 +102,26 @@ export async function reactivateMember(_prev: MemberState, formData: FormData): 
   if (error) return { status: "error", message: error.message };
   await createAdminClient()?.auth.admin.updateUserById(memberId, { ban_duration: "none" });
   revalidatePath("/", "layout");
+  await notify(supabase, memberId, (to, name, balance) =>
+    membershipReactivatedEmail(to, { firstName: firstName(name), plan, balance }));
   return { status: "done", at: Date.now(), message: "Abonnement réactivé : le membre peut de nouveau se connecter." };
+}
+
+/**
+ * Prévient le membre par e-mail. Nom et solde sont lus maintenant (session du gérant) ;
+ * l'adresse (clé d'administration) et l'envoi se font après la réponse.
+ */
+async function notify(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  memberId: string,
+  build: (to: string, name: string, balance: number) => Parameters<typeof sendMail>[0],
+) {
+  const [{ data: member }, { data: bal }] = await Promise.all([
+    supabase.from("profiles").select("full_name").eq("id", memberId).single(),
+    supabase.from("member_balances").select("balance").eq("member_id", memberId).maybeSingle(),
+  ]);
+  after(async () => {
+    const to = await memberEmail(memberId);
+    if (to) await sendMail(build(to, member?.full_name ?? "", bal?.balance ?? 0));
+  });
 }
