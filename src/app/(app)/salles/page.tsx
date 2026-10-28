@@ -3,16 +3,36 @@ import { Users, Coins } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/session";
 import type { Room } from "@/lib/types";
-import { PageHeader, StatCard } from "@/components/ui";
+import { EmptyState, PageHeader, StatCard } from "@/components/ui";
+import { FilterBar } from "@/components/filters";
 import { RoomPhoto } from "@/components/room-photo";
 
 export const metadata = { title: "Nos salles" };
 
-export default async function RoomsPage() {
+type Search = { usage?: string; places?: string; budget?: string; dispo?: string };
+
+const places = (n: number) => `${n} pers. ou plus`;
+const budget = (n: number) => `Jusqu’à ${n} crédit${n > 1 ? "s" : ""}/h`;
+
+export default async function RoomsPage({ searchParams }: { searchParams: Promise<Search> }) {
   await requireSession();
+  const f = await searchParams;
   const supabase = await createClient();
   const { data } = await supabase.from("rooms").select("*").order("sort_order").returns<Room[]>();
   const rooms = data ?? [];
+  const blocked = rooms.filter((r) => r.unavailable_reason).length;
+
+  // Options des filtres tirées des salles elles-mêmes : une nouvelle salle y apparaît d'office.
+  const uniq = (values: number[]) => [...new Set(values)].sort((a, b) => a - b);
+  const usages = [...new Set(rooms.map((r) => r.usage))];
+  const capacities = uniq(rooms.map((r) => r.capacity)).filter((n) => n > 1);
+  const prices = uniq(rooms.map((r) => r.credits_per_hour));
+
+  const shown = rooms.filter((r) =>
+    (!f.usage || r.usage === f.usage) &&
+    (!f.places || capacities.some((n) => places(n) === f.places && r.capacity >= n)) &&
+    (!f.budget || prices.some((n) => budget(n) === f.budget && r.credits_per_hour <= n)) &&
+    (!f.dispo || (f.dispo === "Indisponible") === !!r.unavailable_reason));
 
   return (
     <>
@@ -20,13 +40,23 @@ export default async function RoomsPage() {
         lead="Des espaces pensés pour vos appels, vos réunions et vos ateliers. Choisissez une salle pour la découvrir et la réserver." />
 
       <div className="mb-8 hidden gap-4 sm:grid sm:grid-cols-3">
-        <StatCard label="Salles" value={rooms.length} />
+        <StatCard label="Salles" value={rooms.length}
+          hint={blocked === 0 ? "toutes réservables aujourd’hui" : `dont ${blocked} non réservable${blocked > 1 ? "s" : ""} aujourd’hui`} />
         <StatCard label="Places max" value={Math.max(0, ...rooms.map((r) => r.capacity))} />
         <StatCard label="Dès (crédits/h)" value={Math.min(...rooms.map((r) => r.credits_per_hour))} tone="accent" />
       </div>
 
+      <FilterBar filters={[
+        { name: "usage", label: "Usage", options: usages },
+        { name: "places", label: "Places", options: capacities.map(places) },
+        { name: "budget", label: "Budget", options: prices.map(budget) },
+        { name: "dispo", label: "Disponibilité", options: ["Réservable", "Indisponible"] },
+      ]} />
+
+      {shown.length === 0 && <EmptyState>Aucune salle ne correspond à ces filtres.</EmptyState>}
+
       <div className="grid gap-5 sm:grid-cols-2">
-        {rooms.map((room) => (
+        {shown.map((room) => (
           <Link key={room.id} href={`/salles/${room.id}`}
             className="card group overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lg">
             <div className="aspect-[16/9] overflow-hidden">
