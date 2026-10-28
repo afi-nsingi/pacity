@@ -96,6 +96,25 @@ check("Solde de Léa revenu au départ", (await balance(lea)) === leaBefore);
 // Nettoyage : la recette ne laisse aucune trace dans la démo. Personne ne peut supprimer
 // depuis l'application (règle métier) : on passe par la clé d'administration, lue dans .env.local.
 const admin = createClient(URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+
+console.log("Gestion des membres (abonnement)");
+const samiId = (await sami.from("profiles").select("id").single()).data.id;
+const samiBefore = await balance(sami);
+const hack = await hugo.rpc("set_member_plan", { p_member_id: samiId, p_plan: "full_time" });
+check("Un membre ne peut pas changer un abonnement", /gérant/.test(hack.error?.message ?? ""), hack.error?.message);
+const toFull = await mathieu.rpc("set_member_plan", { p_member_id: samiId, p_plan: "full_time" });
+check("Le gérant passe Sami en Full Time", !toFull.error && toFull.data?.plan === "full_time", toFull.error?.message);
+check("Sami reçoit tout de suite les 20 crédits du mois", (await balance(sami)) === samiBefore + 20);
+await mathieu.rpc("set_member_plan", { p_member_id: samiId, p_plan: "nomad" });
+await mathieu.rpc("set_member_plan", { p_member_id: samiId, p_plan: "full_time" });
+check("Repasser Full Time le même mois : pas de doublon", (await balance(sami)) === samiBefore + 20);
+await mathieu.rpc("set_member_plan", { p_member_id: samiId, p_plan: "nomad" });
+check("Retour en Nomad : crédits conservés", (await balance(sami)) === samiBefore + 20);
+const frozen = await sami.rpc("book_room", { p_room_id: room("Phone Booth").id, p_starts_at: slot(9) });
+check("Retour en Nomad : crédits gelés (réservation refusée)", /Nomad/.test(frozen.error?.message ?? ""), frozen.error?.message);
+// Remise en état de Sami (Nomad, sans les crédits du test).
+await admin.from("credit_ledger").delete().eq("member_id", samiId).eq("kind", "monthly").gte("created_at", new Date(Date.now() - 600000).toISOString());
+check("Sami remis dans son état de départ", (await balance(sami)) === samiBefore);
 if (created.length) {
   const ledger = await admin.from("credit_ledger").delete().in("booking_id", created);
   const bookings = await admin.from("bookings").delete().in("id", created);

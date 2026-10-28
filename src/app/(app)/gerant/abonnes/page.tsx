@@ -4,8 +4,9 @@ import { formatDate, ledgerPeriod } from "@/lib/dates";
 import { KIND_LABEL, PLAN_LABEL, type LedgerEntry, type Profile } from "@/lib/types";
 import { Amount, EmptyState, KindBadge, PageHeader, SectionTitle } from "@/components/ui";
 import { FilterBar } from "@/components/filters";
+import { AddMemberPanel, PlanEditor } from "./member-forms";
 
-export const metadata = { title: "Abonnements et crédits" };
+export const metadata = { title: "Membres et crédits" };
 
 const PERIODS = ["Aujourd’hui", "7 derniers jours", "Ce mois-ci", "Plus ancien"];
 type Search = { q?: string; abonnement?: string; periode?: string; membre?: string; type?: string };
@@ -44,8 +45,10 @@ export default async function SubscribersPage({ searchParams }: { searchParams: 
 
   return (
     <>
-      <PageHeader title="Abonnements et crédits"
-        lead="Suivez l’abonnement et les crédits de chaque membre. Les Full Time reçoivent automatiquement 20 crédits le 1er de chaque mois, cumulables." />
+      <PageHeader title="Membres et crédits"
+        lead="Ajoutez un membre, changez son abonnement et suivez ses crédits. Les Full Time reçoivent automatiquement 20 crédits le 1er de chaque mois, cumulables." />
+
+      <AddMemberPanel />
 
       <FilterBar searchPlaceholder="Rechercher un membre" filters={[
         { name: "abonnement", label: "Abonnement", options: Object.values(PLAN_LABEL) },
@@ -58,11 +61,7 @@ export default async function SubscribersPage({ searchParams }: { searchParams: 
               {shown.map((s) => (
                 <tr key={s.id}>
                   <td className="font-medium">{s.full_name}</td>
-                  <td>
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${s.plan === "full_time" ? "bg-sage-soft text-sage" : "bg-mustard-soft text-[#9a6a0c]"}`}>
-                      {s.plan ? PLAN_LABEL[s.plan] : ""}
-                    </span>
-                  </td>
+                  <td>{s.plan && <PlanEditor key={s.plan} memberId={s.id} plan={s.plan} upcoming={s.confirmed} />}</td>
                   <td>{s.plan === "full_time" ? "20 crédits" : "Aucun (Nomad)"}</td>
                   <td className="text-right font-semibold tabular-nums">{s.balance}</td>
                   <td>{s.lastGrant ? formatDate(s.lastGrant) : "—"}</td>

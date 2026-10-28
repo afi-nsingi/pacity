@@ -72,3 +72,18 @@ export function passwordResetEmail(to: string, link: string): Mail {
       { href: link, label: "Choisir un nouveau mot de passe" }),
   };
 }
+
+export function welcomeEmail(to: string, firstName: string, plan: "full_time" | "nomad", link: string): Mail {
+  const planText = plan === "full_time"
+    ? "Votre abonnement <strong>Full Time</strong> vous donne <strong>20 crédits par mois</strong>, cumulables : ceux de ce mois sont déjà sur votre compte."
+    : "Votre abonnement <strong>Nomad</strong> vous donne accès au coworking ; la réservation de salles est réservée aux abonnés Full Time.";
+  return {
+    to,
+    subject: "Bienvenue chez Pacity 👋 Votre accès aux réservations",
+    html: layout(`Bienvenue chez Pacity, ${escape(firstName)} 👋`,
+      `<p style="margin:0;line-height:1.6">L’équipe Pacity vous a ouvert un accès à l’application de réservation des salles de réunion.</p>
+      <p style="margin:16px 0 0;line-height:1.6">${planText}</p>
+      <p style="margin:16px 0 0;line-height:1.6;color:#7A6A5C;font-size:14px">Pour commencer, choisissez votre mot de passe. Ce lien ne sert qu’une fois et expire dans une heure ; passé ce délai, utilisez « Mot de passe oublié ? » sur la page de connexion.</p>`,
+      { href: link, label: "Choisir mon mot de passe" }),
+  };
+}

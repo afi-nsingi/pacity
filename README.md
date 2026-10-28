@@ -21,6 +21,7 @@ Cas pratique NoCode Factory, réalisé avec **Claude Code** par Afi NSINGI NDOMB
 **Gérant**
 - voir toutes les réservations (recherche, filtres membre, salle, période, statut) ;
 - annuler n'importe quelle réservation avec un motif : le membre est remboursé ;
+- ajouter un membre (e-mail de bienvenue : il choisit lui-même son mot de passe) et changer son abonnement ;
 - suivre les abonnements, les soldes et chaque mouvement de crédits.
 - rendre une salle indisponible (travaux, fuite, privatisation…) avec un motif affiché aux membres, puis la rouvrir.
 
@@ -34,6 +35,7 @@ Cas pratique NoCode Factory, réalisé avec **Claude Code** par Afi NSINGI NDOMB
 | Salle rendue indisponible par le gérant : plus aucune réservation possible | fonction `book_room` + RLS (seul le gérant modifie une salle) |
 | Créneaux à l'heure pile, 08:00 → 20:00, du lundi au vendredi, pas dans le passé, jusqu'à 30 jours | fonction `book_room` (et le formulaire) |
 | Annulation par le gérant seulement, motif obligatoire, un seul remboursement | fonction `cancel_booking` + index unique |
+| Changement d'abonnement par le gérant seulement ; passage Full Time = 20 crédits du mois tout de suite, jamais en double | fonction `set_member_plan` (migration 0003) |
 | Full Time : +20 crédits le 1er de chaque mois, cumulables, jamais en double | `grant_monthly_credits` planifiée par `pg_cron` + index unique |
 | Un membre ne voit que ses données ; personne n'écrit directement dans les crédits | Row Level Security |
 
@@ -61,7 +63,7 @@ src/lib/               dates (heure de Paris), session, e-mails
 ## Lancer le projet en local
 
 1. Créer un projet Supabase et exécuter, dans l'ordre, `supabase/migrations/0001_schema.sql`,
-   `0002_rules.sql` puis `supabase/seed.sql`.
+   `0002_rules.sql`, `0003_members.sql` puis `supabase/seed.sql`.
 2. Copier `.env.example` en `.env.local` et le compléter (aucune clé n'est dans le dépôt).
 3. Installer et lancer :
    ```bash
