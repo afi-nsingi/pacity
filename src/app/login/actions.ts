@@ -21,6 +21,8 @@ export async function signIn(_prev: LoginState, formData: FormData): Promise<Log
 
 export async function signOut() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  // « local » : déconnecte cet appareil seulement. Par défaut, Supabase fermerait les sessions
+  // du compte sur tous les appareils (téléphone, ordinateur…).
+  await supabase.auth.signOut({ scope: "local" });
   redirect("/login");
 }
