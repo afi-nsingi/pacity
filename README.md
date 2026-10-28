@@ -21,6 +21,7 @@ Cas pratique NoCode Factory, réalisé avec **Claude Code** par Afi NSINGI NDOMB
 - voir toutes les réservations (recherche, filtres membre, salle, période, statut) ;
 - annuler n'importe quelle réservation avec un motif : le membre est remboursé ;
 - suivre les abonnements, les soldes et chaque mouvement de crédits.
+- rendre une salle indisponible (travaux, fuite, privatisation…) avec un motif affiché aux membres, puis la rouvrir.
 
 ## Règles métier
 
@@ -29,6 +30,7 @@ Cas pratique NoCode Factory, réalisé avec **Claude Code** par Afi NSINGI NDOMB
 | Deux réservations confirmées d'une même salle ne se chevauchent jamais | contrainte d'exclusion PostgreSQL (`no_overlap`) |
 | Abonnement Nomad : aucune réservation | fonction `book_room` |
 | Solde suffisant, débit dans la même transaction que la réservation | fonction `book_room` |
+| Salle rendue indisponible par le gérant : plus aucune réservation possible | fonction `book_room` + RLS (seul le gérant modifie une salle) |
 | Créneaux à l'heure pile, 08:00 → 20:00, du lundi au vendredi, pas dans le passé, jusqu'à 30 jours | fonction `book_room` (et le formulaire) |
 | Annulation par le gérant seulement, motif obligatoire, un seul remboursement | fonction `cancel_booking` + index unique |
 | Full Time : +20 crédits le 1er de chaque mois, cumulables, jamais en double | `grant_monthly_credits` planifiée par `pg_cron` + index unique |
