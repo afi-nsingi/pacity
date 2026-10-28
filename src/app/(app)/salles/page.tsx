@@ -20,7 +20,8 @@ export default async function RoomsPage({ searchParams }: { searchParams: Promis
   const supabase = await createClient();
   const { data } = await supabase.from("rooms").select("*").order("sort_order").returns<Room[]>();
   const rooms = data ?? [];
-  const blocked = rooms.filter((r) => r.unavailable_reason).length;
+  const blockedRooms = rooms.filter((r) => r.unavailable_reason);
+  const blocked = blockedRooms.length;
 
   // Options des filtres tirées des salles elles-mêmes : une nouvelle salle y apparaît d'office.
   const uniq = (values: number[]) => [...new Set(values)].sort((a, b) => a - b);
@@ -45,6 +46,14 @@ export default async function RoomsPage({ searchParams }: { searchParams: Promis
         <StatCard label="Places max" value={Math.max(0, ...rooms.map((r) => r.capacity))} />
         <StatCard label="Dès (crédits/h)" value={Math.min(...rooms.map((r) => r.credits_per_hour))} tone="accent" />
       </div>
+
+      {/* Sur téléphone, les compteurs sont masqués : un bandeau signale les salles bloquées. */}
+      {blocked > 0 && (
+        <p className="mb-4 rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger sm:hidden">
+          {blocked} salle{blocked > 1 ? "s" : ""} non réservable{blocked > 1 ? "s" : ""} aujourd’hui :{" "}
+          {blockedRooms.map((r) => `${r.name} (${r.unavailable_reason})`).join(", ")}.
+        </p>
+      )}
 
       <FilterBar filters={[
         { name: "usage", label: "Usage", options: usages },
